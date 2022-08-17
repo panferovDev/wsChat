@@ -18,7 +18,7 @@ export const userCheck = () => (dispatch) => {
       dispatch(userAdd(res.data));
     })
     .catch((err) => {
-      dispatch(userAdd({}));
+      dispatch(userAdd({})); // define association here
     });
 };
 

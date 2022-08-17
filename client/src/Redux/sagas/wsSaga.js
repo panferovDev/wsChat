@@ -1,6 +1,6 @@
 import { take, put, call, fork, takeLatest, takeEvery } from 'redux-saga/effects';
 import { eventChannel, END } from 'redux-saga';
-import { SET_WS } from '../types';
+import { GET_CHAT_MESSAGES, SET_CHAT_MESSAGE, SET_WS } from '../types';
 
 function createSocketChannel(socket, action) {
   return eventChannel((emit) => {
@@ -35,7 +35,15 @@ function createWebSocketConnection() {
 
 function* userMessage(socket) {
   while (true) {
-    const message = yield take('MESSAGE');
+    const message = yield take(SET_CHAT_MESSAGE);
+    console.log('mess---->>', message);
+    socket.send(JSON.stringify(message));
+  }
+}
+
+function* getUserMessages(socket) {
+  while (true) {
+    const message = yield take(GET_CHAT_MESSAGES);
     socket.send(JSON.stringify(message));
   }
 }
@@ -44,6 +52,7 @@ function* chatWatcer(action) {
   const socket = yield call(createWebSocketConnection);
   const socketChannel = yield call(createSocketChannel, socket, action);
   yield fork(userMessage, socket);
+  yield fork(getUserMessages, socket);
 
   while (true) {
     try {

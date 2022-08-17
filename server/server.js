@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 app.locals.ws = new Map();
 
+const userRouter = require('./routes/userRouter');
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
@@ -33,10 +35,12 @@ const sessionParser = session({
 
 app.use(sessionParser);
 
+app.use('/api/user', userRouter);
+
 const server = http.createServer(app);
 
 server.on('upgrade', (request, socket, head) => {
-  console.log('Parsing session from request...');
+  console.log('Parsing session from request...', app.locals.ws);
 
   sessionParser(request, {}, () => {
     if (!request.session.user) {
@@ -48,7 +52,7 @@ server.on('upgrade', (request, socket, head) => {
     console.log('Session is parsed!');
 
     wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
+      wss.emit('connection', ws, request, app.locals.ws);
     });
   });
 });
